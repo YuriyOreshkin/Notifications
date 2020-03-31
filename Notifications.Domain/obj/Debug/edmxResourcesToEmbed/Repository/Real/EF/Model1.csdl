@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="NotificationModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityType Name="EmployeesNotifications">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+    <Property Name="NotificationID" Type="Int64" Nullable="false" />
+    <Property Name="DateTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Scanned" Type="DateTime" Precision="3" />
+    <NavigationProperty Name="Notifications" Relationship="Self.FK_Employees_Notifications" FromRole="EmployeesNotifications" ToRole="Notifications" />
+  </EntityType>
+  <EntityType Name="Notifications">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Title" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Content" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="DateTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="AuthorID" Type="Int64" Nullable="false" />
+    <NavigationProperty Name="EmployeesNotifications" Relationship="Self.FK_Employees_Notifications" FromRole="Notifications" ToRole="EmployeesNotifications" />
+  </EntityType>
+  <Association Name="FK_Employees_Notifications">
+    <End Role="Notifications" Type="Self.Notifications" Multiplicity="1" />
+    <End Role="EmployeesNotifications" Type="Self.EmployeesNotifications" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Notifications">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="EmployeesNotifications">
+        <PropertyRef Name="NotificationID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="Entities" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="EmployeesNotifications" EntityType="Self.EmployeesNotifications" />
+    <EntitySet Name="Notifications" EntityType="Self.Notifications" />
+    <AssociationSet Name="FK_Employees_Notifications" Association="Self.FK_Employees_Notifications">
+      <End Role="Notifications" EntitySet="Notifications" />
+      <End Role="EmployeesNotifications" EntitySet="EmployeesNotifications" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<XMPPSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Enable="true">
+  <Server>sl00700008001.0007.pfr.ru</Server>
+  <Domain>sl00700008001</Domain>
+  <!--sets the number of seconds before automatically reconnecting if the connection drops. -1 to disable, 0 for immediate.-->
+  <AutoReconnect>100</AutoReconnect>
+  <User>dvor</User>
+  <Port>5222</Port>
+  <Password>dvormessage</Password>
+  <MessageTemplate>Пользователь {notification.title} прислал Вам новое уведомление! Подробнее по ссылке: http://dvor.0007.pfr.ru/dvor </MessageTemplate>
+</XMPPSettings>

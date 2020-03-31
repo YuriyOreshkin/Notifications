@@ -1,0 +1,13 @@
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\bin\Release\Notifications.OuterService.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\bin\Release\Notifications.OuterService.pdb
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\obj\Release\Notifications.OuterService.csprojAssemblyReference.cache
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\obj\Release\Notifications.OuterService.csproj.CoreCompileInputs.cache
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\obj\Release\Notifications.OuterService.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\obj\Release\Notifications.OuterService.pdb
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\bin\Release\Notifications.OuterService.dll.config
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\bin\Release\jabber-net.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\bin\Release\netlib.Dns.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\obj\Release\Notifications.OuterService.csproj.CopyComplete
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\bin\Release\NLog.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\bin\Release\NLog.xml
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.OuterService\bin\Release\NLog.config

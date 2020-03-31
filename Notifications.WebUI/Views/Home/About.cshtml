@@ -1,0 +1,35 @@
+﻿@{
+    ViewBag.Title = "About";
+}
+<h2>@ViewBag.Title.</h2>
+<h3>@ViewBag.Message</h3>
+
+<p>Use this area to provide additional information.</p>
+<div class="panel-wrap">
+    @(Html.Kendo().Splitter()
+                                      .Name("horizontal")
+                                      .Orientation(SplitterOrientation.Horizontal)
+                                      .Panes(horizontalPanes =>
+                                      {
+                                          horizontalPanes.Add()
+                                                .HtmlAttributes(new { id = "left-pane" })
+                                                .Size("300px")
+                                                .Collapsible(true)
+                                                .Content(
+                                                        @<text>
+                                                            <iframe src='http://10.7.0.80/IAPKomi/' width='100%' height='300' align='left'></iframe>
+                                                        </text>);
+
+                                          horizontalPanes.Add()
+                                                          .HtmlAttributes(new { id = "center-pane" });
+                                          //.Content(@<div class="pane-content"> @Html.Partial("Index")</div>);
+
+                                          horizontalPanes.Add()
+                                                .HtmlAttributes(new { id = "right-pane" })
+                                                .Collapsible(true)
+                                                .Size("300px")
+                                                .LoadContentFrom(Url.Content("http://10.7.99.191/ECA/USERS/Index"));
+                                      })
+    )
+</div>
+
