@@ -1,0 +1,11 @@
+﻿@{
+    Layout = "~/Views/Shared/_EmptyLayout.cshtml";
+
+}
+
+@model  Notifications.WebUI.Models.NotificationViewModel
+
+
+<div>
+    @Html.Partial("~/Views/Notification/Content.cshtml", Model)
+</div>

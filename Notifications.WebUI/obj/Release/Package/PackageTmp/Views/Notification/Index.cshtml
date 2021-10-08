@@ -1,0 +1,1148 @@
+﻿<script src="@Url.Content("~/Scripts/jquery.signalR-2.4.1.min.js")"></script>
+<script src="@Url.Content("~/signalr/hubs")"></script>
+<script src="@Url.Content("~/Scripts/readmore.min.js")"></script>
+@{
+    Layout = "~/Views/Shared/_EmptyLayout.cshtml";
+}
+<div class="k-content">
+    <div id="toolbar-grid">
+        @(Html.Kendo().ToolBar()
+                                               .Name("toolbar")
+                                               .Items(items =>
+                                               {
+                                                   items.Add().Type(CommandType.Button).Id("addButton").Text("Создать").Click("addNotification").Icon("add").Primary(true).HtmlAttributes(new { style = "margin: 0.5em 0.2em;vertical-align: middle;" }).Togglable(false).Overflow(ShowInOverflowPopup.Never);
+                                       //items.Add().Type(CommandType.Separator);
+                                       //items.Add().Template("<div><span class='k-icon k-i-bell k-icon-24'></span><div id='newnotificarions-count' class='new-notificarions-count'>0</div></div>").Overflow(ShowInOverflowPopup.Never);
+                                       items.Add().Type(CommandType.Separator);
+                                                   items.Add().Type(CommandType.Button).Id("scannedButton").HtmlAttributes(new { title = "Показывать просмотренные" }).Text("<div><span id='view-scanned' class='k-icon k-i-eye k-icon-24'></span><div id='newnotificarions-count' class='new-notificarions-count'>0</div></div>").Togglable(true).Toggle("toggleToolBarButton").Overflow(ShowInOverflowPopup.Never);
+                                                   items.Add().Type(CommandType.Button).Id("markedButton").HtmlAttributes(new { title = "Показывать избранные" }).Text("<span id='view-marked' class='k-icon k-i-star k-icon-24'></span>").Togglable(true).Toggle("toggleToolBarButton").Overflow(ShowInOverflowPopup.Auto);
+                                       //items.Add().Type(CommandType.Button).Id("markedButton").Text("Избранное").Togglable(true).Toggle("readListView").Overflow(ShowInOverflowPopup.Auto).ShowText(ShowIn.Overflow).SpriteCssClass("fa");
+                                       items.Add().Type(CommandType.Separator);
+                                                   items.Add().Template(
+                                                                       Html.Kendo().DropDownList()
+                                                                                                 .Name("typeDropDownList")
+                                                                                                 .DataTextField("Text")
+                                                                                                 .DataValueField("Value")
+                                                                                                 .Events(ev => ev.Change("typeDropDownListChange"))
+                                                                                                 .HtmlAttributes(new { style = "width: 150px;" })
+                                                                                                 .BindTo(new List<SelectListItem>() {
+                                                                                new SelectListItem() {
+        Text = "Входящие",
+                                                                                    Value = "0"
+                                                                                },
+                                                                                new SelectListItem() {
+        Text = "Исходящие",
+                                                                                    Value = "1"
+                                                                                }
+                                           }
+                                                                                                 ).ToHtmlString()
+                                                                             ).Overflow(ShowInOverflowPopup.Never);
+                                                   items.Add().Type(CommandType.Separator);
+                                                   items.Add().Type(CommandType.ButtonGroup).Buttons(buttons =>
+                                                                          {
+                                                       buttons.Add().Text("Поиск").Id("searcher").Togglable(true).Icon("search").Toggle("showFilters");
+                                                       buttons.Add().Text("Период").Id("period").Togglable(true).Icon("calendar").Toggle("showFilters");
+                                                       buttons.Add().Text("Приоритет").Id("priority").Togglable(true).Icon("list-ordered").Toggle("showFilters");
+                                                       buttons.Add().Text("Получатель").Id("recipient").Togglable(true).Icon("user").Toggle("showFilters");
+                                                   }).Overflow(ShowInOverflowPopup.Auto);
+                                               })
+                                                .Resizable(true)
+        )
+    </div>
+
+    <div id="filter"></div>
+    <div id="filter-priority" class="filter-section">
+        <span class="k-textbox k-space-left" style="width: 100%;">
+            @(Html.Kendo().DropDownList()
+                                                    .Name("filterByPriorityDDL")
+                                                    .OptionLabel(new { id = 0, color = "", description = "Выберите приоритет..." })
+                                                    .HtmlAttributes(new { style = "width: 100%;" })
+                                                    .DataTextField("description")
+                                                    .DataValueField("id")
+                                                    .Template("<div style='height:20px; width:20px;display: inline-block; vertical-align: middle; background-color: #= color#;'></div><span style='padding-left: 10px;'>#= description #</span>")
+                                                    .ValueTemplate("<div style='height:20px; width:20px;display: inline-block;vertical-align: middle; background-color: #= color#;'></div><span style='padding-left: 10px;'>#= description #</span>")
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read => read.Action("ReadPriorities", "NotificationDirectory"));
+                                                    })
+                                                    .Events(ev => ev.Change("notificationsFiltering"))
+            )
+            <span class="k-icon k-i-list-ordered"></span>
+        </span>
+    </div>
+    <div id="filter-period" class="filter-section">
+        <span class="k-textbox k-space-left" style="width: 100%;">
+            @(Html.Kendo().DateRangePicker()
+                                                .Name("daterangepicker")
+                                                .HtmlAttributes(new { style = "width: 100 %;background-color:transparent;" })
+                                                .Labels(false)
+                                                .Culture("ru-RU")
+                                                .Events(ev => ev.Change("notificationsFiltering"))
+            )
+            <span class="k-icon k-i-calendar-date"></span>
+        </span>
+    </div>
+    <div id="filter-searcher" class="filter-section">
+        <span class="k-textbox k-space-left" style="width: 100%;">
+            @(Html.Kendo().TextBox().Name("searchbox").HtmlAttributes(new { placeholder = "Поиск" }))
+            <span class="k-icon k-i-search"></span>
+        </span>
+    </div>
+    <div id="filter-recipient" class="filter-section">
+        <span class="k-textbox k-space-left" style="width: 100%;">
+            @(Html.Kendo().AutoComplete()
+                                                .Name("searchbyrecipient")
+                                                .DataTextField("fullname")
+                                                .Placeholder("Введите получателя...")
+                                                .Filter(FilterType.Contains)
+                                                .MinLength(3)
+                                                .HtmlAttributes(new { style = "width: 100%; " })
+                                                .ClearButton(false)
+                                                .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("ReadEmployees", "NotificationDirectory").Data("dataReadRecipients");
+                                                    });
+                                                    source.ServerFiltering(true);
+
+                                                })
+                                                .Events(ev => ev.Change("notificationsFiltering"))
+
+            )
+            <span class="k-icon k-i-user"></span>
+        </span>
+    </div>
+
+
+    <div id="appendto" style="background: #edeef0;"></div>
+    @(Html.Kendo().Notification()
+                                              .Name("displayNotification")
+                                              .AppendTo("#appendto")
+                                              .Stacking(NotificationStackingSettings.Down)
+                                              .Animation(animation => animation
+                                                            .Close(effect => effect
+                                                                .SlideIn(SlideDirection.Left)
+                                                                .Reverse(true)
+                                                            )
+                                                          )
+                                              .AutoHideAfter(3000)
+                                              .Templates(t =>
+                                              {
+                                                  t.Add().Type("success").ClientTemplateID("successCreate");
+                                                  t.Add().Type("warning").ClientTemplateID("newNotification");
+                                                  t.Add().Type("error").ClientTemplateID("errorNotification");
+                                              })
+    )
+
+    <div id="listview"  style="height:88vh;">
+        @(Html.Kendo().ListView<Notifications.WebUI.Models.NotificationViewModel>()
+                                                                                          .Name("notificationListView")
+                                                                                          .TagName("div")
+                                                                                          .ClientTemplateId("notification-template")
+                                                                                          .Scrollable(ListViewScrollableMode.Endless)
+                                                                                          .Editable()
+                                                                                          .HtmlAttributes(new { style = "background: #edeef0; height:100%;" })
+                                                                                          .Events(ev => ev.DataBound("onDataBound"))
+                                                                                          .DataSource(dataSource => dataSource
+                                                                                              .PageSize(10)
+                                                                                              .Sort(s =>
+                                                                                              {
+                                                                                                  s.Add(first => first.datetime).Descending();
+                                                                                                  s.Add(second => second.priority.id).Ascending();
+                                                                                              })
+                                                                                              .Model(model => model.Id("id"))
+                                                                                              .Read(read => read.Action("ReadNotifications", "NotificationDirectory").Data("parameters"))
+                                                                                                                                                    )
+
+        )
+    </div>
+    </div>
+    <div id="window-details">
+        @(Html.Kendo().Window()
+                                        .Name("windowMessage")
+                                        .Modal(true)
+                                        .Visible(false)
+                                        .Draggable()
+                                        .HtmlAttributes(new { @class = "k-popup-edit-form" })
+                                        .Events(ev => ev.Refresh("onWindowRefresh").Close("onWindowClose"))
+        )
+    </div>
+
+    <!--Templates-->
+    <script id="notification-template" type="text/kendo-ui-template">
+        <div class="notification">
+            <div class="notification-wrapper">
+                <div class="notification-header">
+                    <div class="notification-header-info">
+                        <!--Title-->
+                        # if(getType() == 0){ #
+                        <span class="title"> #= title #</span>
+                        # }else { #
+                        <span class="title"> #= employeenotification.recipient.fullname # # if(sendto.length > 1) { # <a class="action-recipients-read" title="Все получатели" href="\\#">...</a>  # } #</span>
+                        # } #
+                        # if(!marked){ #
+                        <a class="action-mark" title="Добавить в избранные" href="\\#">
+                            <span class="k-icon k-i-star-outline k-icon-24" style="color:\\#939393; float:right;"></span>
+                        </a>
+                        # }else { #
+                        <a class="action-mark" title="Удалить из избранных" href="\\#">
+                            <span class="k-icon k-i-star k-icon-24" style="color:\\#ffc000; float:right;"></span>
+                        </a>
+                        # } #
+                        <div class="notification-date">
+                            <span class="date">  #=kendo.toString(kendo.parseDate(datetime),'dd.MM.yyyy HH:mm') #</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-text">
+                        <article>#= content #</article>
+                    </div>
+                    <div class="notification-actions">
+                        <div class="actions-info">
+                            <div class="views">
+                                # if(getType() == 0){ #
+
+                                # if(employeenotification.scanned){ #
+                                <span class="k-icon k-i-eye k-icon-24"></span>
+                                <span>Просмотрено: </span>
+                                <span class="scanne-date"> #=kendo.toString(kendo.parseDate(employeenotification.scanned),'dd.MM.yyyy HH:mm') #</span>
+                                # }else { #
+                                <!--<a class="action-scanne" title="Просмотреть" href="\\#"><span class="k-icon k-i-eye k-icon-24" style="color:#= priority.color #;"></span></a>-->
+                                @(Html.Kendo().Button()
+                                            .Tag("a")
+                                            .Name("actionScanButton_#=id#")
+                                            .Content("<span class='k-icon k-i-eye k-icon-24' style='margin-right: 2px; color:#= priority.color #;'></span><span style='color: \\#2a5885;'>Просмотреть</span>")
+                                            .HtmlAttributes(new { @class = "action-scanne" })
+                                            .ToClientTemplate()
+                                )
+                                # } #
+
+                                # } #
+                            </div>
+                            <div class="recipients">
+                                <div class="action-recipients-read" style="display:inline-block;">
+                                    <span class="recipients-count"> #=sendto.length #</span>
+                                    <a title="Получатели" href="\\#"><span class="k-icon k-i-user"></span></a>
+                                </div>
+                                <div style="display:inline-block; margin-left:15px;">
+                                    # if(getType() == 0){ #
+                                    <a class="action-comment" title="Ответить" href="\\#"><span class="k-icon k-i-comment k-icon-24"></span></a>
+                                    # }else { #
+                                    <a class="action-comment" title="Переслать всем" href="\\#"><span class="k-icon k-i-reload-sm k-icon-24"></span></a>
+                                    # } #
+                                </div>
+                                <div style="display:inline-block; margin-left:15px;">
+                                    <a class="action-forward" title="Переслать" href="\\#"><span class="k-icon k-i-redo k-icon-24"></span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <!--Checkbox TreeView-->
+    <script id="checkboxSendTo" type="text/x-kendo-template">
+
+        <input type='checkbox' name='checkbox[#= item.id #]' class='k-checkbox' /><!-- #= item.disabled ? 'disabled' : '' # #= item.ischecked ? 'checked' : '' # />-->
+        <span class="k-checkbox-label checkbox-span"></span>
+
+    </script>
+    <!-- Success Create Template-->
+    <script id="successCreate" type="text/x-kendo-template">
+        <div class="upload-success">
+            <img src="@Url.Content("~/Content/Images/success-icon.png")" />
+            <h3>#= message #</h3>
+        </div>
+    </script>
+    <!-- Upload Template-->
+    <script id="newNotification" type="text/x-kendo-template">
+        <div class="upload-success">
+            <img src="@Url.Content("~/Content/Images/envelope.png")" />
+            <h3>#= message #</h3>
+        </div>
+    </script>
+    <!-- Error Template-->
+    <script id="errorNotification" type="text/x-kendo-template">
+        <div class="upload-success">
+            <img src="@Url.Content("~/Content/Images/error-icon.png")" />
+            <h3>#= message #</h3>
+        </div>
+    </script>
+    <!--JS -->
+    <script>
+
+
+    //SignalR
+    var hub = $.connection.notificationsHub;
+    //hub.client.onConnected = function () { };
+
+    //New notification
+    hub.client.displayNewNotification = function (notification) {
+        if (getType() == 0) {
+            //IN
+            var listView = $("#notificationListView").data("kendoListView");
+            var dataSource = listView.dataSource;
+            //dataSource.insert(0, message);
+            dataSource.read({ parameters});
+
+        }
+
+        var color = notification.priority.color;
+        document.documentElement.style.setProperty('--color', color);
+
+        showMessage("warning","У Вас новое уведомление!");
+
+        var value =getValueCountNewNotifications()+ 1;
+        setValueCountNewNotifications(value);
+
+    };
+    //Action after create
+    hub.client.displayAddNotification = function (notification) {
+
+        if (getType() == 1) {
+            //OUT
+            var listView = $("#notificationListView").data("kendoListView");
+            var dataSource = listView.dataSource;
+            dataSource.insert(0, notification)
+
+        }
+        else {
+            //IN
+            showMessage("success", "Уведомление успешно отправлено!");
+        }
+
+    };
+
+     $.connection.hub.start();
+
+
+    $(document).ready(function () {
+
+        countNewNotifications();
+    });
+
+    //parameters seach recipients
+    function dataReadRecipients() {
+        return {
+            text: $("#searchbyrecipient").val()
+        };
+    }
+
+    //Click Add Button
+    function addNotification(e)
+    {
+        showWindows("Новое уведомление","@Url.Action("Content", "Notification")");
+    }
+
+
+    //Read parameters
+    function parameters()
+    {
+        var type = getType();
+        var scanned = isScanned();
+        var marked = isMarked();
+        var recipient = Recipient();
+
+        return { type: type, scanned: scanned, marked: marked, recipient: recipient }
+    }
+
+
+    //Filter Scanned enable/disable
+    function isScanned()
+    {
+        var button = $("#scannedButton");
+        return button.hasClass("k-state-active");
+    }
+
+
+    //Filter Marked enable/disable
+    function isMarked() {
+        var button = $("#markedButton");
+        return button.hasClass("k-state-active");
+    }
+
+    function Recipient() {
+
+        //recipient
+        if (isButtonActive($("#recipient"))) {
+            var autocomplete = $("#searchbyrecipient").data("kendoAutoComplete");
+            var value = autocomplete.value();
+
+            if (value.length > 0) {
+                var dataItem = autocomplete.dataItems().filter(x => x.fullname === value);
+
+                return dataItem[0].id;
+
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+
+            return null;
+        }
+
+    }
+
+    //Get type notifications for Read
+    function getType()
+    {
+        var type = $("#typeDropDownList").data("kendoDropDownList").value();
+
+        return type;
+    }
+
+
+    function onDataBound(e) {
+
+        //ReadMore 33
+        readMore($('article'));
+
+    }
+
+    //Read more config
+    function readMore(elements, startOpen)
+    {
+        elements.readmore({
+            speed: 200,
+            maxHeight: 15,
+            heightMargin: 16,
+            moreLink: '<a href="#" style="margin-top:5px">Подробнее</a>',
+            lessLink: '<a href="#">Скрыть</a>',
+            startOpen: startOpen
+        });
+    }
+
+
+    function closeWindow(e)
+    {
+        $("#windowMessage").data("kendoWindow").close();
+    }
+
+
+
+    //don't used
+    function sendNotification(e) {
+
+        var validator = $("#notification-add").kendoValidator().data("kendoValidator");
+
+        if (validator.validate()) {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("CreateNotification", "NotificationDirectory")",
+                datatype: 'json',
+                data: $('#notification-add').serialize(),
+                success: function (data) {
+
+                    if (data.message == "OK") {
+                        if (getType() == 1) {
+                            //OUT
+                            var listView = $("#notificationListView").data("kendoListView");
+                            var dataSource = listView.dataSource;
+                            dataSource.insert(0, data.result);
+
+                        }
+                        else {
+                            //IN
+                            showMessage("success", "Уведомление успешно отправлено!");
+                        }
+
+                        //hub.server.newNotification(data.result);
+                        closeWindow();
+
+                    }
+                    else {
+
+                        //$(".errors").text(data.errors);
+                        showError(data.errors);
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    //$(".errors").text(xhr.status + " " + thrownError);
+                    showError(xhr.status + " " + thrownError);
+                }
+            });
+        }
+    }
+
+
+    //Show Notification
+    function showMessage(type, message) {
+        var notification = $("#displayNotification").data("kendoNotification");
+        notification.show({
+            message: message
+        }, type);
+
+    }
+
+    function onWindowClose(e)
+    {
+        //list scroll to top
+        $("#recipientListView").scrollTop(0);
+
+    }
+
+    function onWindowRefresh(e)
+    {
+        //Open
+        this.center().open();
+    }
+
+    function showWindows(title, url, data) {
+
+        //var wnd = $("#windowMessage").data("kendoWindow");
+        ////Clean content
+        //wnd.content("");
+
+        ////Set title
+        //wnd.title(title);
+
+        ////Load content
+        //wnd.refresh({
+        //    url: url,
+        //    type: "POST",
+        //    data: data
+        //});
+
+        //windows
+
+        var parameters="";
+        if (data) {
+
+            parameters ="?" + $.param(data);
+        }
+
+        var width = 510;
+        var height = 450;
+        var left = (screen.width / 2) - (width / 2);
+        var top = (screen.height / 2) - (height / 2);
+        var windowoption = 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no,width=' + width + ', height=' + height + ', top=' + top + ', left=' + left;
+        var windowname = 'popup';
+
+        //var w = window.open(url + 'View' + parameters, "popup", 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no,width=' + width + ', height=' + height + ', top=' + top + ', left=' + left);
+        OpenWindowWithPost(url + 'View', windowoption, windowname, data);
+        //w.focus();
+
+    }
+
+
+    //Open Window POST request
+    function OpenWindowWithPost(url, windowoption, name, params) {
+        var form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", url);
+        form.setAttribute("target", name);
+
+        for (var i in params) {
+            if (params.hasOwnProperty(i)) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = i;
+                input.value = params[i];
+                form.appendChild(input);
+            }
+        }
+
+        document.body.appendChild(form);
+
+        if (window.open('', name) != null) {
+            window.open('',name).close();
+        };
+        //note I am using a post.htm page since I did not want to make double request to the page
+        //it might have some Page_Load call which might screw things up.
+        var w = window.open("post.htm", name, windowoption);
+        //w.focus();
+
+        form.submit();
+
+        document.body.removeChild(form);
+    }
+
+    $("#searchbox").on("input", function () {
+
+         notificationsFiltering();
+
+    });
+
+    //default filter
+    function defaultFilterSettings(id)
+    {
+        //default settings
+        switch (id) {
+            case "priority":
+                $("#filterByPriorityDDL").data("kendoDropDownList").select(0);
+                break;
+
+            case "period":
+                $("#daterangepicker").data("kendoDateRangePicker").range({ start: null, end: null });
+                break;
+
+            case "searcher":
+                $("#searchbox").val("");
+                break;
+
+            case "recipient":
+                $("#searchbyrecipient").data("kendoAutoComplete").value("");
+                break;
+
+        }
+
+    }
+
+    //Show Filters
+    function showFilters(e) {
+
+        defaultFilterSettings(e.id);
+        if (e.checked) {
+
+            $("#filter").append($("#filter-" + e.id))
+            $("#filter-" + e.id).show();
+
+        }
+        else {
+
+            $("#filter-" + e.id).hide();
+            notificationsFiltering();
+        }
+    }
+
+    //filter notifications list
+    function notificationsFiltering() {
+        var query = { logic: "and", filters: [{}] };
+        //priority
+        if (isButtonActive($("#priority"))) {
+
+            var priority = $("#filterByPriorityDDL").data("kendoDropDownList").value();
+            if (priority != 0) {
+                query.filters.push({ field: "priorityid", operator: "eq", value: priority });
+                //query.filters.push({ field: "PriorityID", operator: "eq", value: priority });
+            }
+        }
+
+
+        //period
+        if (isButtonActive($("#period"))) {
+            var daterangepicker = $("#daterangepicker").data("kendoDateRangePicker");
+            var range = daterangepicker.range();
+            var dateBegin = range.start;
+            var dateEnd = range.end;
+
+
+            if ((dateBegin != null || dateBegin != undefined) && (dateEnd != null || dateEnd != undefined)) {
+
+                dateBegin = new Date(dateBegin.setHours(0, 0, 0, 0));
+                dateEnd = new Date(dateEnd.setHours(24, 0, 0, 0));
+
+
+                query.filters.push(
+                    { field: "dateTime", operator: "gte", value: dateBegin },
+                    { field: "dateTime", operator: "lte", value: dateEnd });
+            }
+
+        }
+
+        //seacher
+        if (isButtonActive($("#searcher"))) {
+            var text = $("#searchbox").val();
+            if (text.length > 0) {
+                //Title or Content
+                query.filters.push({
+                    logic: "or",
+                    filters: [
+                        { field: "title", operator: "contains", value: text },
+                        { field: "content", operator: "contains", value: text }
+                    ]
+                });
+
+            }
+        }
+
+
+
+
+
+        var listView = $("#notificationListView").data("kendoListView");
+        var dataSource = listView.dataSource;
+        dataSource.filter(query);
+
+    }
+
+    function isButtonActive(element)
+    {
+        if (element.hasClass("k-state-active")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+    $(document).on("click",".action-recipients-read",function (e) {
+        e.preventDefault();
+        var listView = $("#notificationListView").data("kendoListView");
+        var container = $(e.target).closest(".notification-wrapper");
+        var item = listView.dataItem(container);
+        //Get notification ID
+        var data = { id: item.id };
+        //change color k-i-eye by priority
+        var color = item.priority.color;
+        document.documentElement.style.setProperty('--color', color);
+
+        showWindows("Получатели", "@Url.Action("Recipients", "Notification")", data);
+
+    });
+
+
+    $(document).on("click",".action-forward",function (e) {
+        e.preventDefault();
+        var listView = $("#notificationListView").data("kendoListView");
+        var container = $(e.target).closest(".notification-wrapper");
+        var item = listView.dataItem(container);
+
+        //Content
+        var content = "</br></br></br></br></br></br></br></br>" +
+            "<hr align='center'  size='1'/>" +
+            "<img src=\"@Url.Content("~/Content/Images/forward.png")\" style='vertical-align: middle;'>" +
+            "<span style='color:#939393; font-size: 12px; padding: 0px 3px;'>  " + item.title + "</span>" +
+            "<span style='color:#939393; font-size: 10px;'>" + kendo.toString(kendo.parseDate(item.datetime), 'dd.MM.yyyy HH:mm') + "</span>" +
+            "</br></br>" + item.content;
+
+        var data = {};
+        data["content"] = content;
+        data["priority.id"] = item.priority.id;
+
+        showWindows("Новое уведомление", "@Url.Action("Content", "Notification")", data)
+
+
+    });
+
+    $(document).on("click", ".action-comment", function (e) {
+
+        e.preventDefault();
+        var listView = $("#notificationListView").data("kendoListView");
+        var container = $(e.target).closest(".notification-wrapper");
+        var item = listView.dataItem(container);
+
+        //Content
+        var content = "</br></br></br></br></br></br></br></br>" +
+            "<hr align='center'  size='1'/>" +
+            "<img src=\"@Url.Content("~/Content/Images/forward.png")\" style='vertical-align: middle;'>" +
+            "<span style='color:#939393; font-size: 12px; padding: 0px 3px;'>  " + item.title + "</span>" +
+            "<span style='color:#939393; font-size: 10px;'>" + kendo.toString(kendo.parseDate(item.datetime), 'dd.MM.yyyy HH:mm') + "</span>" +
+             "</br></br>" + item.content;
+
+        var data = {};
+        if (getType() == 1) {
+            //OUT
+             for (var i = 0; i < item.sendto.length; i++) {
+
+                 data["sendto[" + i + "]"] = +item.sendto[i];
+             }
+        }
+        else {
+            //IN
+            data["sendto[0]"] = item.author.id;
+        }
+
+        data["content"] = content;
+        data["priority.id"] =item.priority.id;
+
+       //var data = { content: content, sendto:"3529"};
+
+        showWindows("Новое уведомление", "@Url.Action("Content", "Notification")", data)
+
+
+        });
+
+    function enableLink(link, enabled)
+    {
+        if (enabled) {
+
+            link.removeClass("k-state-disabled");
+        }
+        else {
+            link.addClass("k-state-disabled");
+        }
+    }
+
+        $(document).on("click",".action-scanne",function (e) {
+            e.preventDefault();
+
+            var link = $(this);
+            //Double click
+            enableLink(link, false);
+
+            var listView = $("#notificationListView").data("kendoListView");
+            var container = $(e.target).closest(".notification-wrapper");
+            var item = listView.dataItem(container);
+            //Get notification ID
+                var data = { id: item.employeenotification.id };
+                 $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("Scanne", "NotificationDirectory")",
+                    datatype: 'json',
+                    data: data,
+                    success: function (data) {
+
+                        if (data.message == "OK") {
+                            var dataSource = listView.dataSource;
+
+
+                            if (isScanned()) {
+                                item.employeenotification.scanned = data.result.scanned;
+                                dataSource.pushUpdate(item);
+                                var startOpen = container.find('article').hasClass('readmore-js-expanded')
+                                var article = listView.element.children("[data-uid='" + item.uid + "']").find('article')
+
+                                readMore(article, startOpen);
+                            }
+                            else
+                            {
+                                //fade
+                                var effect = kendo.fx(container).fadeOut().duration(500);
+                                effect.play().then(function () {
+
+                                    dataSource.remove(item);
+                                });
+
+                            }
+
+                            var value = getValueCountNewNotifications() - 1;
+                            setValueCountNewNotifications(value);
+
+                      }
+                      else {
+
+                            showMessage("error", data.result);
+                            enableLink(link, true);
+
+                      }
+                  },
+                  error: function (xhr, ajaxOptions, thrownError) {
+                      showMessage("error", xhr.status + " " + thrownError);
+                      enableLink(link, true);
+                  }
+
+                });
+    });
+
+    $(document).on("click", ".action-mark", function (e) {
+        e.preventDefault();
+        var listView = $("#notificationListView").data("kendoListView");
+        var container = $(e.target).closest(".notification-wrapper");
+        var item = listView.dataItem(container);
+        //Get notification ID
+        var id, type = getType();
+        if (type == 0) {
+            id = item.employeenotification.id;
+        }
+        else {
+            id = item.id;
+        }
+        var data = { type: type, id: id };
+             $.ajax({
+                type: "POST",
+                url: "@Url.Action("Mark", "NotificationDirectory")",
+                datatype: 'json',
+                data: data,
+                success: function (data) {
+
+                  if (data.message == "OK") {
+                      var dataSource = listView.dataSource;
+                      if (isMarked()) {
+
+                          //fade
+                          var effect = kendo.fx(container).fadeOut().duration(500);
+                          effect.play().then(function () {
+
+                              dataSource.remove(item);
+                          });
+
+                      }
+                      else {
+
+                          item.set("marked", !item.marked)
+                          var startOpen = container.find('article').hasClass('readmore-js-expanded')
+                          var article = listView.element.children("[data-uid='" + item.uid + "']").find('article')
+
+                          readMore(article, startOpen);
+                      }
+                  }
+                  else {
+
+                      showMessage("error", data.result);
+                  }
+              },
+              error: function (xhr, ajaxOptions, thrownError) {
+                  showMessage("error", xhr.status + " " + thrownError);
+
+              }
+          });
+    });
+
+    //toggleToolBarButton
+    function toggleToolBarButton(e)
+    {
+        //Rename title
+        if (e.id == 'markedButton')
+        {
+            if (isMarked()) {
+
+                $(e.target).attr("title", "Скрывать избранные");
+            }
+            else {
+                $(e.target).attr("title", "Показывать избранные");
+            }
+
+        }
+
+        //Rename title
+        if (e.id == 'scannedButton') {
+            if (isScanned()) {
+
+                $(e.target).attr("title", "Скрывать просмотренные");
+            }
+            else {
+                $(e.target).attr("title", "Показывать просмотренные");
+            }
+        }
+
+        readListView();
+    }
+
+    //Read data
+    function readListView()
+    {
+        var listView = $("#notificationListView").data("kendoListView");
+        //Reset counter endless page
+        listView._endlessPageSize = 10;
+        //Read first page
+        listView.dataSource.page(1);
+    }
+
+
+
+
+    function countNewNotifications()
+    {
+        $.getJSON("@Url.Action("CountNew", "NotificationDirectory")", function (data) {
+
+            setValueCountNewNotifications(data);
+
+        });
+
+
+    }
+
+    function getValueCountNewNotifications()
+    {
+        var value = $("#newnotificarions-count").text();
+        return +value;
+    }
+
+    function setValueCountNewNotifications(value)
+    {
+        $("#newnotificarions-count").text(value);
+
+        if (value == 0) {
+            //Hide
+            $("#newnotificarions-count").hide();
+
+        } else {
+            //Show
+            $("#newnotificarions-count").show();
+        }
+    }
+
+    //DropDownList change
+    function typeDropDownListChange(e) {
+        var value = this.value();
+        var toolbar = $("#toolbar").data("kendoToolBar");
+        if (value == 0) {
+            //Show scanned button
+            //$("#scannedButton").show();
+            //toolbar.show($("#scannedButton"));
+            toolbar.enable($("#scannedButton"), true);
+        }
+        else
+        {
+            //Hide
+            //$("#scannedButton").hide();
+            //toolbar.hide($("#scannedButton"));
+            toolbar.enable($("#scannedButton"), false);
+        }
+
+        readListView();
+    }
+
+
+    function onAdditionalData(arg) {
+        var result = {};
+        var values = $("#sendto").data("kendoDropDownTree").value();
+        var text = $(".k-popup-dropdowntree").find(":input").val();
+
+        //values
+        for (var i = 0; i < values.length; i++) {
+
+            result["values[" + i + "]"] = values[i];
+        }
+
+        result["text"] = text;
+
+        return result;
+    }
+
+
+    </script>
+    <style>
+            .k-grid .k-grid-header {
+                display: none;
+            }
+
+            .notification-wrapper {
+                border-radius: 4px;
+                box-shadow: 1px 0 0 #d7d8db, 0 0 0 1px #e3e4e8;
+                background: #fff;
+                /*border-bottom: 1px solid #dbdbdb;
+            padding: 0.25em 0;*/
+                margin: 0.5em;
+            }
+
+            .notification-header {
+                padding: 15px 20px 0;
+            }
+
+            .notification-date {
+                color: #939393;
+                font-size: 12px;
+                padding-top: 3px
+            }
+
+            .notification-text {
+                padding: 8px 20px 20px;
+                word-wrap: break-word;
+                font-size: 13px;
+                overflow: hidden;
+                line-height: 1.2;
+                text-overflow: ellipsis;
+                position: relative;
+                z-index: 2;
+            }
+
+
+            .notification-actions {
+                padding: 0 20px;
+            }
+
+            .actions-info {
+                padding: 10px 0;
+                border-top: 1px solid #e7e8ec;
+                display: -ms-flexbox;
+                display: flex;
+                -ms-flex-align: center;
+                align-items: center;
+                -ms-flex-pack: justify;
+                justify-content: space-between;
+                position: relative;
+                line-height: 24px;
+            }
+
+            .views {
+                color: #939393;
+                font-size: 12px;
+            }
+
+            .recipients {
+                margin-left: 21px;
+                cursor: pointer;
+                text-decoration: none !important;
+                line-height: 16px;
+            }
+
+            .title {
+                font-size: 13px;
+                font-weight: bold;
+                color: #2a5885;
+                text-decoration: none;
+            }
+
+            .new-notificarions-count {
+                display: none;
+                padding: 1px 4px;
+                border: 1px solid #fafafa;
+                border-radius: 12px;
+                color: #fff;
+                font-size: 9px;
+                height: 11px;
+                line-height: 11px;
+                min-width: 5px;
+                top: -1px; /*6px;*/
+                left: 0px; /*215px;*/
+                background-color: #ff734c;
+                text-align: center;
+                position: absolute;
+            }
+
+            .k-notification h3 {
+                padding: 10px 10px 5px;
+                font-size: 1em;
+                line-height: normal;
+                font-weight: bold;
+            }
+
+            .k-notification img {
+                margin: 0px 10px 10px 10px;
+                float: left;
+            }
+
+            .upload-success {
+                height: 50px;
+            }
+
+            /*.content {
+
+            border: 1px solid #ccc;
+            font-size: 12px;
+            line-height: 9px;
+            color: #8a8b8f;
+            display: inline-block;
+        }*/
+
+            .k-icon-32 {
+                font-size: 32px; /* Sets icon size to 48px */
+            }
+
+            .k-icon-24 {
+                font-size: 24px; /* Sets icon size to 48px */
+            }
+
+            .colored-icon {
+                color: var(--color);
+            }
+
+            :root {
+                --color: #cc2939;
+            }
+
+            /*Filter*/
+            .filter-section {
+                margin: 10px;
+                display: none;
+                position: relative;
+            }
+
+            .k-notification-warning {
+                background-color: var(--color);
+                border-color: var(--color);
+                color: white;
+            }
+
+            #addButton:focus {
+                color: white;
+            }
+    </style>
+

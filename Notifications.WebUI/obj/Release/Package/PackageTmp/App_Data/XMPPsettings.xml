@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<XMPPSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Enable="true">
+  <Server>sl00700008001.0007.pfr.ru</Server>
+  <Port>5222</Port>
+  <Domain>sl00700008001.0007.pfr.ru</Domain>
+  <AutoReconnect>-1</AutoReconnect>
+  <User>dvor</User>
+  <Password>dvormessage</Password>
+  <MessageTemplate>Пользователь {notification.title} прислал Вам новое уведомление! Подробнее по ссылке: http://dvor.0007.pfr.ru/dvor </MessageTemplate>
+</XMPPSettings>

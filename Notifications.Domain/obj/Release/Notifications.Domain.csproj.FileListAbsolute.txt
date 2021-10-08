@@ -1,0 +1,13 @@
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\bin\Release\Notifications.Domain.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\bin\Release\Notifications.Domain.pdb
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\bin\Release\EntityFramework.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\bin\Release\EntityFramework.SqlServer.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\bin\Release\Newtonsoft.Json.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\bin\Release\EntityFramework.xml
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\bin\Release\EntityFramework.SqlServer.xml
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\bin\Release\Newtonsoft.Json.xml
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\obj\Release\Notifications.Domain.csproj.CoreCompileInputs.cache
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\obj\Release\Notifications.Domain.csproj.CopyComplete
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\obj\Release\Notifications.Domain.dll
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\obj\Release\Notifications.Domain.pdb
+C:\Users\007OreshkinYV\source\repos\Notifications\Notifications.Domain\obj\Release\Notifications.Domain.csprojAssemblyReference.cache

@@ -1,0 +1,120 @@
+﻿@{
+    ViewBag.Title = "Administration";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@(Html.Kendo().TabStrip()
+                    //.HtmlAttributes(new { style = " margin-top: 10px;" })
+                    .Name("AdminTabStrip")
+                    .TabPosition(TabStripTabPosition.Top)
+                    .Items(items =>
+                    {
+                        items.Add().Text("Настройки").Selected(true).LoadContentFrom("Settings", "Administration");
+
+
+                        items.Add().Text("Лог").LoadContentFrom("Log", "Administration");
+                    })
+)
+
+<script type="text/javascript">
+
+
+    function typeFilter(args) {
+       
+        args.element.kendoDropDownList({
+            dataSource: [{ text: "INFO", value: "INFO" },
+            { text: "ERROR", value: "ERROR" }
+            ],
+            valuePrimitive: true,
+            dataTextField: "text",
+            dataValueField: "value"
+        });
+    }
+
+    //Refresh Log Grid
+    function RefreshData() {
+        var daterangepicker = $("#daterangepicker").data("kendoDateRangePicker");
+        var range = daterangepicker.range()
+        var dateBegin = range.start;
+        var dateEnd = range.end;
+        var grid = $("#gridLog").data("kendoGrid")
+        if ((dateBegin != null || dateBegin != undefined) && (dateEnd != null || dateEnd != undefined)) {
+            
+                grid.dataSource.read();
+           
+        }
+    }
+
+    //Get parameters for Log Grid
+    function ReadLogParameters()
+    {
+        var daterangepicker = $("#daterangepicker").data("kendoDateRangePicker");
+        var range = daterangepicker.range()
+        var dateBegin = range.start;
+        var dateEnd = range.end;
+       
+        return { datebegin: dateBegin.toJSON(), dateend: dateEnd.toJSON() }
+    }
+
+
+    function setColor(isConnected)
+    {
+        if (isConnected) {
+
+            $("#isConnected").css("color", "#1aae1d");
+        }
+        else {
+
+            $("#isConnected").css("color", "#ff0000");
+        }
+    }
+
+    function saveSettings()
+    {
+        var validator = $("#xmpp-settings").kendoValidator().data("kendoValidator");
+
+        if (validator.validate()) {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("SaveSettings", "Administration") ", 
+                datatype: 'json',
+                data: $('#xmpp-settings').serialize(),
+                success: function (data) {
+
+                        if (data.message == "OK") {
+
+                            setColor(data.result.isConnected);
+                            kendo.alert("<span  class='k-icon k-i-check' style='font-size: 32px; color: #1aae1d'></span><span  style='margin-left: 15px;'>Settings has been saved Successfully.</span>");
+                        }
+                        else {
+
+                            kendo.alert("<span  class='k-icon k-i-close' style='font-size: 32px; color:  #ff0000'></span><span  style='margin-left: 15px;'>"+ data.errors+"</span>");
+                            
+                        }
+                    },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    
+                    kendo.alert("<span  class='k-icon k-i-close' style='font-size: 32px; color:  #ff0000'></span><span  style='margin-left: 15px;'>" + data.errors + "</span>");
+                    }
+            });
+        
+    }
+    }
+</script>
+<style>
+    .k-form-fieldset {
+        margin: 32px 0 0;
+        padding: 0 0;
+        border-width: 0;
+        box-sizing: border-box;
+    }
+
+    .k-form-field-wrap {
+        width: 100%;
+    }
+
+    .k-form-field {
+        margin-bottom: 10px;
+        
+    }
+</style>

@@ -1,0 +1,205 @@
+﻿@model long?
+
+    @(Html.Kendo().AutoComplete()
+                                    .Name("searcherRecipients")
+                                    .DataTextField("fullname")
+                                    .Placeholder("Поиск...")
+                                    .Filter(FilterType.Contains)
+                                    .MinLength(3)
+                                    .HtmlAttributes(new { style = "width: 100%; " })
+                                    .Events(ev => ev.Select("recipientsFiltering").Change("recipientsStopFiltering"))
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("ReadEmployees", "NotificationDirectory", new { notificationId = @Model }).Data("dataReadRecipients");
+                                        });
+                                        source.ServerFiltering(true);
+
+                                    })
+
+    )
+ 
+
+@(Html.Kendo().ListView<Notifications.WebUI.Models.EmployeeNotificationViewModel>()
+                                            .Name("recipientListView")
+                                            .TagName("div")
+                                            .ClientTemplateId("recipient-template")
+                                            .Scrollable(ListViewScrollableMode.Endless)
+                                            .Editable()
+                                            .HtmlAttributes(new { style = "background: #edeef0; height: 94vh; min-width: 300px;" })
+                                            .DataSource(dataSource => dataSource
+                                                                    .PageSize(10)
+                                                                    .Model(model => model.Id("id"))
+                                                                    .Read(read => read.Action("ReadRecipients", "NotificationDirectory", new { notificationId = @Model }))
+                                                                    )
+)
+<!--Templates-->
+<script id="recipient-template" type="text/kendo-ui-template">
+    <div class="recipient-wrapper">
+        <div class="recipient-content">
+            <div class="avatar">
+                <div class="avatar-photo">
+                    <span class="avatar-title">#= avatarTitle(recipient.fullname) #</span>
+                </div>
+                # if(recipient.online){ #
+                    <span  title="В сети" class="status-online"></span>
+                # } #
+            </div>
+            <div class="recipient-info">
+                <span class="recipient-title">#= recipient.fullname #</span>
+                <div class="scanne-date">
+
+                    # if(scanned){ #
+                    <!--<span class="k-icon k-i-eye k-icon-24"></span>-->
+                    <span>уведомление просмотрено:  #=kendo.toString(kendo.parseDate(scanned),'dd.MM.yyyy HH:mm') #</span>
+                    # }else { #
+                    <!--<span title="Не просмотрено" class="k-icon k-i-eye k-icon-24 colored-icon"></span>-->
+                    <span class="colored-icon">уведомление не просмотрено</span>
+                    # } #
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script>
+    //filter recipients list
+    function recipientsFiltering(e) {
+        var dataItem = this.dataItem(e.item.index());
+        var listView = $("#recipientListView").data("kendoListView");
+        var dataSource = listView.dataSource;
+
+        dataSource.filter({ field: "EmployeeID", operator: "eq", value: dataItem.id });
+    }
+
+    function recipientsStopFiltering(e) {
+        if (this.value().length == 0) {
+            var listView = $("#recipientListView").data("kendoListView");
+            var dataSource = listView.dataSource;
+
+            dataSource.filter({});
+        }
+
+    }
+
+    //Avatar
+    function avatarTitle(fullname) {
+        var arr = fullname.split(' ', 2);
+
+        return arr[0].substr(0, 1) + arr[1].substr(0, 1)
+    }
+
+
+
+    function dataReadRecipients() {
+        return {
+            text: $("#searcherRecipients").val()
+        };
+    }
+</script>
+<style>
+    :root {
+        --color: #cc2939;
+    }
+
+    .colored-icon {
+        color: var(--color);
+    }
+
+    .k-icon-24 {
+        font-size: 24px; /* Sets icon size to 48px */
+    }
+
+    .recipient-wrapper {
+        box-shadow: 1px 0 0 #d7d8db, 0 0 0 1px #e3e4e8;
+        background: #fff;
+        
+    }
+
+    .recipient-title {
+        word-break: break-word;
+        font-size: 13px;
+        font-weight: bold;
+        color: #2a5885;
+        text-decoration: none;
+    }
+    .recipient-info {
+
+       display:inline;
+        
+    }
+    .recipient-content {
+        display:flex;
+        padding: 10px 5px;
+        align-items:stretch;
+    }
+
+    .scanne-date {
+        color: #939393;
+        font-size: 12px;
+        padding-top: 3px
+    }
+
+    .not-viewed {
+        color: #939393;
+    }
+
+    .avatar {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        margin: 0 5px 0 0;
+    }
+    .avatar-photo {
+        position: relative;
+        background-color: rgb(229, 228, 232);
+        border-radius: 20px;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        flex-direction: row;
+        flex-grow: 0;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .status-online {
+        background-color: #8ac176;
+        border-radius: 50%;
+        right: 2%;
+        bottom: 2%;
+        border: 2px solid #fff;
+        width: 8px;
+        height: 8px;
+        position: absolute;
+        cursor: inherit;
+    }
+    .avatar-title {
+        position: relative;
+        display: inline;
+        flex-grow: 0;
+        flex-shrink: 0;
+        overflow: hidden;
+        white-space: pre;
+        text-overflow: ellipsis;
+        font-size: 14px;
+        color: rgb(0, 120, 212);
+        font-weight: bold;
+        background-color: rgba(0, 0, 0, 0);
+        
+    }
+
+
+    #searcherRecipients {
+        background: url('../Content/Images/searcher.svg') left 4px center no-repeat;
+        background-position: 5px 50%;
+        background-size: 16px;
+        padding-left: 25px;
+        padding-right: .25em;
+        width:91%;
+        background-color: #ffffff;
+    }
+
+</style>

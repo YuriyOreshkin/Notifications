@@ -1,0 +1,79 @@
+﻿<div style="height:85vh;">
+    @(Html.Kendo().Grid<Notifications.WebUI.Models.LogStringViewModel>()
+                                                        .Name("gridLog")
+                                                        .HtmlAttributes(new { @class = "data-view", style = "margin: 10px 5px;height:100%" })
+                                                        .ToolBar(toolbar =>
+                                                        {
+                                                            toolbar.Template( @<text>
+                                                                <div style="display: inline-block;">
+                                                                    @(Html.Kendo().Button().Name("Refresh").Tag("div").HtmlAttributes(new { type = "button" }).Icon("refresh").Content("Обновить").Events(ev => ev.Click("RefreshData")))
+                                                                </div>
+                                                                <div style="float:right;margin: .16em; vertical-align: middle;">
+                                                                    <label class="period-label" for="period" style=" padding-right: .40em; margin-top: 0.30em;">Период:</label>
+                                                                    @(Html.Kendo().DateRangePicker()
+                                                                                                                          .Name("daterangepicker")
+                                                                                                                          .HtmlAttributes(new { style = "float:right; background-color:transparent;" })
+                                                                                                                          .Labels(false)
+                                                                                                                          .Range(r => r.Start(DateTime.Now).End(DateTime.Now))
+                                                                                                                          .Culture("ru-RU")
+                                                                                                                          .Events(ev => ev.Change("RefreshData"))
+                                                                    )
+                                                                </div>
+                                                            </text>);
+
+                                                                })
+                                                                        .Columns(columns =>
+                                                                        {
+                                                                            columns.Bound(p => p.type).Width(150).Title("Тип").Filterable((ftb => ftb.Cell(cell => cell.Template("typeFilter").ShowOperators(false).Operator("eq"))));
+                                                                //columns.Bound(p => p.date).Format("{0:dd.MM.yyyy}").Width(140).Filterable(false).HeaderHtmlAttributes(new { style= "visible:hidden;" });
+                                                                //columns.Bound(p => p.time).ClientTemplate("#= kendo.format('{0:00}:{1:00}:{2:00}', time.Hours, time.Minutes,time.Milliseconds) #").Width(100).Filterable(false);
+                                                                columns.Bound(p => p.content).Title("Содержание").Filterable(ftb => ftb.Cell(cell => cell.Operator("contains").SuggestionOperator(FilterType.Contains)));
+
+                                                                        })
+                                                                        .Sortable()
+                                                                        .Scrollable(sc => sc.Endless(true))
+                                                                        .Filterable(fb => fb.Extra(false).Mode(GridFilterMode.Row))
+                                                                        .ClientRowTemplate("<tr data-uid='#: uid #'>" +
+                                                                                             "<td colspan='4' class='details'>" +
+                                                                                                 "# if(type == 'INFO') { #" +
+                                                                                                        "<span class='type k-badge k-badge-solid k-badge-info k-badge-md k-badge-rounded k-badge-inline' data-role='badge'>  #= type.toLowerCase() # </span> " +
+                                                                                                  "# } else { #" +
+                                                                                                        "<span class='type k-badge k-badge-solid k-badge-error k-badge-md k-badge-rounded k-badge-inline' data-role='badge'>  #= type.toLowerCase() # </span> " +
+                                                                                                   "# } #" +
+                                                                                                   "<span class='date'>  #=kendo.toString(kendo.parseDate(date),'dd.MM.yyyy') # </span> " +
+                                                                                                   "<span class='date'> #= kendo.format('{0:00}:{1:00}:{2:00}', time.Hours, time.Minutes,time.Milliseconds) # </span> " +
+                                                                                                    "<div class='content'> #: content # </div>" +
+                                                                                                "</td>" +
+                                                                                            "</tr>")
+                                                                        .DataSource(dataSource => dataSource
+                                                                            .Ajax()
+                                                                            .PageSize(20)
+                                                                            .Read(read => read.Action("ReadLog", "Administration").Data("ReadLogParameters"))
+                                                                        )
+    )
+</div>
+<style>
+    .date {
+        color: #939393;
+        font-size: 12px;
+    }
+
+    .content {
+        padding: 8px 20px 20px;
+        word-wrap: break-word;
+        font-size: 13px;
+        overflow: hidden;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        position: relative;
+        z-index: 2;
+    }
+
+    .type {
+        margin-right: 10px;
+        padding-right:10px;
+    }
+    .k-badge-error {
+        background-color: #f45835;
+    }
+</style>

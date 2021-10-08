@@ -1,0 +1,354 @@
+﻿@model  Notifications.WebUI.Models.NotificationViewModel
+
+<div class="k-edit-form-container" style="width:100%;  min-width:400px;">
+    <span id="staticNotification"></span>
+    <div id="appendto" class="demo-section k-content"></div>
+    <!-- style="width: auto;">-->
+    <form id="notification-add" style="height:100%;">
+        <div style="margin: 10px;">
+            @(Html.Kendo().DropDownTree()
+                                                                                .Name("sendto")
+                                                                                //.DataTextField("Text")
+                                                                                //.DataValueField("Id")
+                                                                                .HtmlAttributes(new { style = "width: 100%;" })
+                                                                                .TemplateId("dropdowntree-template")
+                                                                                .AutoClose(false)
+                                                                                .Value(Model.sendto != null ? Model.sendto.Select(s => s.ToString()) : null)
+                                                                                .LoadOnDemand(false)
+                                                                                //.ValuePrimitive(true)
+                                                                                .Checkboxes(true)//chbox => chbox.TemplateId("checkboxSendTo").Name("ischecked"))
+                                                                                .Filter("contains")
+                                                                                .Placeholder("Выберите получателей...")
+                                                                                .BindTo((IEnumerable<DropDownTreeItemModel>)ViewBag.SendToTreeData)
+                                                                                .Events(ev => ev.Change("onChangeSendto").DataBound("onDataBoundSendto"))
+                                                                                .DataSource(source =>
+                                                                                {
+                                                                                    source.Model(model => model.Id("Value"));
+                                                                                    //    source.Read(read =>
+                                                                                    //    {
+                                                                                    //        read.Action("ReadEmployeesTreeView", "EmployeeDirectory").Data("onAdditionalData");
+                                                                                    //        source.ServerFiltering(true);
+                                                                                    //    });
+                                                                                })
+            //.Events(ev => ev.Change("onChangeSendto").Select("onSelectSendto"))//.Filtering("onFilteringSendto"))
+            )
+            <span data-for="sendto" class="k-invalid-msg"></span>
+        </div>
+        @**<div style="margin: 10px;">
+                @(Html.Kendo().MultiSelectFor(p => p.sendto)
+                                                    .DataTextField("fullname")
+                                                    .DataValueField("id")
+                                                    .Placeholder("Выберите получателей...")
+                                                    .AutoBind(false)
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read =>
+                                                        {
+
+                                                            read.Action("ReadEmployees", "EmployeeDirectory");//.Data("onAdditionalData");
+                                                          });
+                                                        source.ServerFiltering(true);
+                                                    })
+                                                    .Events(ev => ev.Change("onChangeSendto")) background-color: #: color#;#= description ##= description #
+                )
+                <span data-for="sendto" class="k-invalid-msg"></span>
+            </div>*@
+        <div style="margin: 10px;">
+            @(Html.Kendo().EditorFor(p => p.content)
+                                                                                .Tools(tool => tool.Clear().Bold().Italic().Underline().FontColor()
+                                                                                .CreateLink().Unlink()
+                                                                                .CustomTemplate(ct => ct.Template(
+                                                                                           "<div> " +
+                                                                                                "<label for='priority'>Приоритет</label>" +
+                                                                                                Html.Kendo().DropDownListFor(p => p.priority.id)
+                                                                                                                                                    .HtmlAttributes(new { style = "margin-left: 10px" })
+                                                                                                                                                    .DataTextField("color")
+                                                                                                                                                    .DataValueField("id")
+                                                                                                                                                    .Template("<div style='height:20px; width:20px;display: inline-block; vertical-align: middle;background-color: \\#= color\\#;'></div><span style='padding-left: 10px;'>\\#= description \\#</span>")
+                                                                                                                                                    .ValueTemplate("<div style='height:20px; width:20px;display: inline-block;vertical-align: middle;background-color: \\#= color\\#;'></div><span style='padding-left: 10px;'>\\#= description \\#</span>")
+                                                                                                                                                    .DataSource(source =>
+                                                                                                                                                    {
+                                                                                                                                                        source.Read(read => read.Action("ReadPriorities", "NotificationDirectory"));
+                                                                                                                                                    }).ToClientTemplate() +
+
+                                                                                            "</div>"
+                                                                                    )))
+                                                                                .Events(ev=>ev.Execute("onEditorExecute"))                
+                                                                                .HtmlAttributes(new { style = "height: calc(100vh - 115px);" }))
+            <!-- Content validation message placeholder -->
+            <span data-for="content" class="k-invalid-msg"></span>
+
+        </div>
+        @*<div style="margin: 10px;">
+                <label for="priority">Приоритет</label>
+                @(Html.Kendo().DropDownListFor(p => p.priority.id)
+                                                            .HtmlAttributes(new { style = "margin-left: 10px" })
+                                                            .DataTextField("color")
+                                                            .DataValueField("id")
+                                                            .Template("<div style='height:20px; width:20px;display: inline-block; vertical-align: middle; background-color: #= color#;'></div><span style='padding-left: 10px;'>#= description #</span>")
+                                                            .ValueTemplate("<div style='height:20px; width:20px;display: inline-block;vertical-align: middle; background-color: #= color#;'></div><span style='padding-left: 10px;'>#= description #</span>")
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read => read.Action("ReadPriorities", "NotificationDirectory"));
+                                                            })
+                )
+            </div>*@
+    </form>
+    <div class="k-edit-buttons k-state-default" style=" position: fixed;padding: 10px; height:65px; width: 100%;">
+        @(Html.Kendo().Button().Name("okAdd").Tag("div").HtmlAttributes(new { type = "button", @class = "k-primary" }).Icon("check").Content("Отправить").Events(click => click.Click("sendNotification")))
+        @(Html.Kendo().Button().Name("cancelAdd").Tag("em").HtmlAttributes(new { type = "button" }).Icon("cancel").Content("Отмена").Events(click => click.Click("closeWindow")))
+    </div>
+</div>
+<script id="dropdowntree-template" type="text/kendo-ui-template">
+    #: item.text #
+</script>
+<script>
+
+    var treeview;
+    var dropdowntree;
+
+    $(window).on("load", function () {
+        var dropdowntreeview = $("#sendto").data("kendoDropDownTree");
+        var tree = dropdowntreeview.treeview;
+        treeview = tree;
+        dropdowntree = dropdowntreeview;
+        tree.bind("dataBound", recipients_dataBound);
+        tree.bind("check", recipients_check);
+        //childsCheck(dropdowntreeview.value().slice(0));
+    });
+
+    function showError(message) {
+
+        var staticNotification = $("#staticNotification").kendoNotification({
+            appendTo: "#appendto"
+        }).data("kendoNotification");
+
+        staticNotification.show(message, "error");
+        var container = $(staticNotification.options.appendTo);
+        container.scrollTop(container[0].scrollHeight);
+
+    }
+
+
+    function recipients_dataBound(e) {
+       
+        if (e.node) {
+            if (treeview.dataItem(e.node).checked) {
+                disableChilds(e.node);
+            };
+        };
+    }
+
+
+    function childsCheck(arr) {
+
+        for (var i = 0; i < arr.length; i++) {
+            var dataItem = treeview.dataSource.get(arr[i]);
+            if (dataItem) {
+                var node = treeview.findByUid(dataItem.uid);
+                disableChilds(node);
+               
+            }
+        }
+
+    }
+
+    function onDataBoundSendto(e) {
+
+        this._savedOld = this.value().slice(0);
+     
+       
+    }
+
+    function onChangeSendto(e) {
+        var previous = this._savedOld;
+        var current = this.value();
+        var del = [];
+        var add = [];
+        if (previous) {
+            del = $(previous).not(current).get();
+        }
+        if (current)
+        {
+            add = $(current).not(previous).get();
+        }
+
+        this._savedOld = current.slice(0);
+
+        if (del.length > 0)
+        {
+            childsCheck(del);
+        }
+
+        /*e.sender.wrapper.find('.k-clear-value').off().on('click', function (event) {
+            console.log("clear");
+        }); 
+          
+       e.sender.wrapper.find('li.k-button').off().on('click', function (event) {
+            if ($(event.target).hasClass('k-select')) {
+                //var id = getValueByText($(event.currentTarget).text());
+               
+                //var dataSource = treeview.dataSource;
+                
+                //var dataItem = dataSource.get(id);
+                //console.log(treeview.findByText($(event.currentTarget).text()));
+                var node = treeview.findByText($(event.currentTarget).text());
+
+                console.log($(node).find(":checkbox").first());
+                $(node).find(":checkbox").first().prop("checked", false);
+                $(node).find(":checkbox").first().trigger("change");
+                //disableChilds(node);
+                event.stopPropagation();
+                /*if (dataItem) {
+                    var node = treeview.findByUid(dataItem.uid);
+                    treeview.dataItem(node).set("checked", false);
+                    //disableChilds(node);
+                }
+                else {
+                    //remove element
+                    var values = e.sender.value();
+                    values.splice(values.indexOf(id), 1);
+                    $(event.currentTarget).remove();
+                    removeOption(id);
+                    //console.log(values);
+                    //e.sender.value(values);
+                }
+                
+                //};
+            }
+        });*/
+    }
+
+ 
+
+    function onAdditionalData(arg) {
+        var result = {};
+        var values = $("#sendto").data("kendoDropDownTree").value();
+        var text = $(".k-popup-dropdowntree").find(":input").val();
+
+        //values
+        for (var i = 0; i < values.length; i++) {
+
+            result["values[" + i + "]"] = values[i];
+        }
+
+        result["text"] = text;
+
+        return result;
+    }
+
+    function disableNode(node, checked) {
+        var checkbox = $(node).find(":checkbox");
+        if (treeview.dataItem(node) && checked) {
+           
+            treeview.dataItem(node).set("checked", false);
+        }
+        checkbox.prop("checked", checked);
+
+        checkbox.attr("disabled", checked);
+        if (checked) {
+
+            $(node).find(".k-in").addClass("k-state-disabled");
+
+        } else {
+
+            $(node).find(".k-in").removeClass("k-state-disabled");
+        }
+    }
+
+    function disableChilds(node) {
+        
+        var checked = $(node).find(":checkbox").prop("checked");
+        var childNodes = $(".k-item", node);
+        childNodes.each(function () {
+
+            disableNode(this, checked);
+        });
+
+    }
+
+
+    function recipients_check(e) {
+
+        disableChilds(e.node);
+    }
+
+    function sendNotification(e) {
+        var validator = $("#notification-add").kendoValidator().data("kendoValidator");
+
+        if (validator.validate()) {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("CreateNotification", "NotificationDirectory") ", // "Notifications/NotificationDirectory/CreateNotification",
+                datatype: 'json',
+                data: $('#notification-add').serialize(),
+                success: function (data) {
+
+                        if (data.message == "OK") {
+
+                            closeWindow();
+                        }
+                        else {
+
+                            //$(".errors").text(data.errors);
+                            showError(data.errors);
+                        }
+                    },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    //$(".errors").text(xhr.status + " " + thrownError);
+                    showError(xhr.status + " " + thrownError);
+                    }
+            });
+        }
+    }
+
+    //Set "open-link-in-new-window" = checked
+    function onEditorExecute(e)
+    {
+        if (e.name == "createlink") {
+            setTimeout(function () {
+                $("#k-editor-link-target").prop("checked", true);
+            }, 1);
+        }
+    }
+    function closeWindow(e) { 
+
+        window.close();
+    }
+</script>
+<style>
+    .k-tool-group {
+        border-width: 0;
+        border-style: solid;
+        padding: 0;
+     
+        border-right-width: 1px;
+        border-color: rgba(0,0,0,.08);
+    }
+    .k-popup-dropdowntree .k-in {
+        white-space: normal;
+    }
+    .k-multiselect-wrap {
+        overflow: auto;
+        max-height: 30vh;
+    }
+
+    .k-clear-value {
+        margin-right: 15px;
+
+    }
+
+    :root {
+        --height: #cc2939;
+    }
+
+    .status-online {
+        background-color: #8ac176;
+        border-radius: 50%;
+        /*right: 2%;*/
+        border: 2px solid #fff;
+        width: 8px;
+        height: 8px;
+        margin-top: 3px;
+    }
+</style>

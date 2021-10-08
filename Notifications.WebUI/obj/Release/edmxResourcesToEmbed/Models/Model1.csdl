@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="NotificationModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityType Name="EmployeesNotifications">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="DateTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="EmployeeID" Type="Int64" Nullable="false" />
+    <Property Name="NotificationID" Type="Int64" Nullable="false" />
+    <Property Name="Scanned" Type="DateTime" Precision="3" />
+    <Property Name="Marked" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="Notifications" Relationship="Self.FK_dbo_EmployeesNotifications_dbo_Notifications_NotificationID" FromRole="EmployeesNotifications" ToRole="Notifications" />
+  </EntityType>
+  <EntityType Name="Notifications">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Title" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Content" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="DateTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="AuthorID" Type="Int64" Nullable="false" />
+    <Property Name="PriorityID" Type="Int16" Nullable="false" />
+    <Property Name="Marked" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="EmployeesNotifications" Relationship="Self.FK_dbo_EmployeesNotifications_dbo_Notifications_NotificationID" FromRole="Notifications" ToRole="EmployeesNotifications" />
+    <NavigationProperty Name="Priorities" Relationship="Self.FK_Notifications_ToPriorities" FromRole="Notifications" ToRole="Priorities" />
+  </EntityType>
+  <EntityType Name="Priorities">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Color" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Description" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
+    <NavigationProperty Name="Notifications" Relationship="Self.FK_Notifications_ToPriorities" FromRole="Priorities" ToRole="Notifications" />
+  </EntityType>
+  <Association Name="FK_dbo_EmployeesNotifications_dbo_Notifications_NotificationID">
+    <End Role="Notifications" Type="Self.Notifications" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="EmployeesNotifications" Type="Self.EmployeesNotifications" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Notifications">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="EmployeesNotifications">
+        <PropertyRef Name="NotificationID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Notifications_ToPriorities">
+    <End Role="Priorities" Type="Self.Priorities" Multiplicity="1" />
+    <End Role="Notifications" Type="Self.Notifications" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Priorities">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="Notifications">
+        <PropertyRef Name="PriorityID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="NotificationEntities" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="EmployeesNotifications" EntityType="Self.EmployeesNotifications" />
+    <EntitySet Name="Notifications" EntityType="Self.Notifications" />
+    <EntitySet Name="Priorities" EntityType="Self.Priorities" />
+    <AssociationSet Name="FK_dbo_EmployeesNotifications_dbo_Notifications_NotificationID" Association="Self.FK_dbo_EmployeesNotifications_dbo_Notifications_NotificationID">
+      <End Role="Notifications" EntitySet="Notifications" />
+      <End Role="EmployeesNotifications" EntitySet="EmployeesNotifications" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Notifications_ToPriorities" Association="Self.FK_Notifications_ToPriorities">
+      <End Role="Priorities" EntitySet="Priorities" />
+      <End Role="Notifications" EntitySet="Notifications" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

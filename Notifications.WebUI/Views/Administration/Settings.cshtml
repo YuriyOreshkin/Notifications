@@ -1,0 +1,77 @@
+﻿@model Notifications.WebUI.Models.XMPPSettingsViewModel
+
+<div style="height:82vh;">
+    <div class="k-form-container" style="margin-left: 25%; width:50%;">
+        <form id="xmpp-settings">
+            <fieldset class="k-form-fieldset k-widget">
+                <legend class="k-form-legend">Настройки XMPP</legend>
+                <div class="k-form-field">
+
+                    <label class="k-label k-form-label" for="Enable">Включить сервис:</label>
+                    <span class="k-form-field-wrap">
+                        @Html.Kendo().SwitchFor(m => m.enable).Events(ev => ev.Change("saveSettings"))
+                    </span>
+
+                    <div style="width:50%; float:right;">
+                        <label class="k-label k-form-label" for="Enable">Соединение:</label>
+
+                        @if (Model.isConnected)
+                        {
+                            <span id="isConnected" class="k-icon k-i-brightness-contrast" style="font-size: 32px; color: #1aae1d"></span>
+                        }
+                        else
+                        {
+                            <span id="isConnected" class="k-icon k-i-brightness-contrast" style="font-size: 32px; color: #ff0000"></span>
+                        }
+                    </div>
+                </div>
+                <div class="k-form-field">
+                    <label class="k-label k-form-label" for="Server">Сервер:</label>
+                    <div class="k-form-field-wrap">
+                        @Html.Kendo().TextBoxFor(m => m.server).HtmlAttributes(new { style = "width:100%;" })
+                    </div>
+                </div>
+                <div class="k-form-field">
+                    <label class="k-label k-form-label" for="Domain">Домен:</label>
+                    <div class="k-form-field-wrap">
+                        @Html.Kendo().TextBoxFor(m => m.domain).HtmlAttributes(new { style = "width:100%;" })
+                    </div>
+                </div>
+                <div class="k-form-field">
+                    <label class="k-label k-form-label" for="Port">Порт:</label>
+                    <div class="k-form-field-wrap">
+                        @Html.Kendo().IntegerTextBoxFor(m => m.port).Format("0").HtmlAttributes(new { style = "width:100%;" })
+                    </div>
+                </div>
+                <div class="k-form-field">
+                    <label class="k-label k-form-label" for="Reconnect">Переподключиться(раз):</label>
+                    <div class="k-form-field-wrap">
+                        @Html.Kendo().NumericTextBoxFor(m => m.autoReconnect).Format("0").HtmlAttributes(new { style = "width:100%;" })
+                    </div>
+                </div>
+                <div class="k-form-field">
+                    <label class="k-label k-form-label" for="User">Пользователь:</label>
+                    <div class="k-form-field-wrap">
+                        @Html.Kendo().TextBoxFor(m => m.user).HtmlAttributes(new { style = "width:100%;" })
+                    </div>
+                </div>
+                <div class="k-form-field">
+                    <label class="k-label k-form-label" for="Password">Пароль:</label>
+                    <div class="k-form-field-wrap">
+                        @Html.Kendo().TextBoxFor(m => m.password).HtmlAttributes(new { type = "password", style = "width:100%;" })
+                    </div>
+                </div>
+                <div class="k-form-field">
+                    <label class="k-label k-form-label" for="MessageTemplate">Шаблон сообщения:</label>
+                    <div class="k-form-field-wrap">
+                        @Html.Kendo().EditorFor(m => m.messageTemplate).Tools(tools => tools.Clear()).HtmlAttributes(new { style = "width:100%;" })
+                    </div>
+                </div>
+            </fieldset>
+
+            <div style="float:right;">
+                @(Html.Kendo().Button().Name("Save").Tag("div").HtmlAttributes(new { type = "button", @class = "k-primary" }).Icon("check").Content("Сохранить").Events(click => click.Click("saveSettings")))
+            </div>
+        </form>
+    </div>
+</div>
